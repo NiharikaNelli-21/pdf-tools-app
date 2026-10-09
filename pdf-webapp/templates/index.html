@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Bindery — a local PDF workbench</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/studio.css') }}">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ============ Header ============ -->
+  <header class="app-header">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 44 44" width="34" height="34" fill="none">
+        <rect x="8" y="4" width="24" height="34" rx="2" fill="var(--paper)" stroke="var(--brass)" stroke-width="1.5"/>
+        <path d="M8 12h24M8 20h24M8 28h16" stroke="var(--ink-800)" stroke-width="1.2" opacity=".45"/>
+        <circle cx="14" cy="4" r="2" fill="var(--brass)"/>
+        <circle cx="22" cy="4" r="2" fill="var(--brass)"/>
+        <circle cx="30" cy="4" r="2" fill="var(--brass)"/>
+      </svg>
+      <div>
+        <h1>The Bindery</h1>
+        <p class="tagline">A local workbench for PDFs</p>
+      </div>
+    </div>
+    <nav class="views"><button data-view="tools" class="is-on">Tools</button><button data-view="templates">Templates</button><button data-view="studio">Studio</button></nav>
+    <div class="privacy-note">
+      <span class="dot"></span>
+      Running on your machine — files never leave this computer
+    </div>
+  </header>
+
+  <div class="app-body">
+
+    <!-- ============ Tool rack (sidebar) ============ -->
+    <nav class="rack" aria-label="Tools">
+      <div class="rack-group">
+        <p class="rack-label">Organize</p>
+        <button class="tool-btn is-active" data-tool="merge">Merge PDFs</button>
+        <button class="tool-btn" data-tool="split">Split PDF</button>
+        <button class="tool-btn" data-tool="delete">Delete pages</button>
+        <button class="tool-btn" data-tool="rotate">Rotate pages</button>
+      </div>
+      <div class="rack-group">
+        <p class="rack-label">Convert</p>
+        <button class="tool-btn" data-tool="pdf2img">PDF → Images</button>
+        <button class="tool-btn" data-tool="img2pdf">Images → PDF</button>
+        <button class="tool-btn" data-tool="pdf2word">PDF → Word</button>
+        <button class="tool-btn" data-tool="word2pdf">Word → PDF</button>
+        <button class="tool-btn" data-tool="extract-text">Extract text</button>
+        <button class="tool-btn" data-tool="extract-images">Extract images</button>
+      </div>
+      <div class="rack-group">
+        <p class="rack-label">Protect</p>
+        <button class="tool-btn" data-tool="protect">Add password</button>
+        <button class="tool-btn" data-tool="unlock">Remove password</button>
+      </div>
+      <div class="rack-group">
+        <p class="rack-label">Optimize &amp; inspect</p>
+        <button class="tool-btn" data-tool="compress">Compress PDF</button>
+        <button class="tool-btn" data-tool="info">Page info</button>
+      </div>
+    </nav>
+
+    <!-- ============ Workbench (main panel) ============ -->
+    <main class="bench">
+      <div class="paper" id="paper">
+
+        <div class="punch-row" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+
+        <div class="paper-inner">
+          <div class="tool-head">
+            <p class="eyebrow" id="tool-eyebrow">Organize</p>
+            <h2 id="tool-title">Merge PDFs</h2>
+            <p class="tool-desc" id="tool-desc">Combine two or more PDFs into one file, in the order you drop them.</p>
+          </div>
+
+          <!-- Drop zone -->
+          <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Choose files">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0-12 4.5 4.5M12 3 7.5 7.5M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <p><strong>Drop files here</strong> or click to browse</p>
+            <p class="dz-hint" id="dz-hint">PDF files only</p>
+            <input type="file" id="file-input" hidden>
+          </div>
+
+          <!-- Selected file chips -->
+          <ul class="file-list" id="file-list"></ul>
+
+          <!-- Per-tool option fields -->
+          <div class="options" id="options"></div>
+
+          <div class="run-row">
+            <button class="run-btn" id="run-btn">Merge files</button>
+            <span class="run-status" id="run-status"></span>
+          </div>
+
+          <!-- Result -->
+          <div class="result" id="result" hidden></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <section id="view-templates" class="view" hidden>
+    <div class="view-head"><div><h2>Templates</h2><p>Pick a look, tweak any template to your taste, or create your own.</p></div></div>
+    <div class="waterfall" id="waterfall"></div>
+  </section>
+  <section id="view-studio" class="view" hidden>
+    <div class="st-bar">
+      <input id="deck-title" class="ttl" placeholder="Deck title"><select id="deck-tpl" title="Template"></select><span class="sep"></span>
+      <button data-add="text">+ Text</button><button data-add="rect">+ Rectangle</button><button data-add="ellipse">+ Ellipse</button><button data-add="img">+ Image</button>
+      <span class="grow"></span><button id="deck-open">Open</button><button id="deck-save">Save</button><button class="btn" id="deck-export">Export PDF</button>
+    </div>
+    <div class="st-main">
+      <aside class="st-left"><div class="slide-ops"><select id="lay"><option value="title">Title</option><option value="content" selected>Title + content</option><option value="two">Two columns</option><option value="blank">Blank</option></select>
+        <button data-slide="add" title="Add slide">+ Add</button><button data-slide="dup" title="Duplicate">Copy</button><button data-slide="up">&uarr;</button><button data-slide="down">&darr;</button><button data-slide="del" class="danger">&times;</button></div><div id="thumbs"></div></aside>
+      <div id="stage"></div><aside class="st-right" id="inspector"></aside>
+    </div>
+  </section>
+  <dialog id="tpl-dlg"></dialog>
+  <input type="file" id="img-in" accept="image/*" hidden><input type="file" id="deck-in" accept=".json" hidden>
+
+  <footer class="app-footer">
+    Built on pypdf, pikepdf, pdf2image &amp; img2pdf — a Flask app running at <code id="origin-note"></code>
+  </footer>
+</div>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script src="{{ url_for('static', filename='js/studio.js') }}"></script>
+</body>
+</html>
